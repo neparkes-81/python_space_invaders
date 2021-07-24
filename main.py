@@ -156,7 +156,7 @@ def main():
     lost_font = pygame.font.SysFont("comicsans", 60)
     
     enemies = []
-    wave_length = 5
+    wave_length = 0
     enemy_vel = 1
 
     player_vel = 5
@@ -167,6 +167,9 @@ def main():
 
     lost = False
     lost_count = 0
+
+    color_list = ["blue", "green", "red"]
+    enemy_ships = []
 
     def redraw_window():
         WIN.blit(BG, (0,0))    
@@ -202,13 +205,20 @@ def main():
             else:
                 continue
 
-
         if len(enemies) == 0:
+            if level%5 == 0 and level <= 15 :
+                wave_length = 0
+                enemy_ships.append(color_list[int(level/5)])
             level += 1
-            wave_length += 5
+            if level <= 5:
+                wave_length += 2
+            else:
+                wave_length += 3
+
             for i in range(wave_length):
-                enemy = Enemy(random.randrange(50, WIDTH-100), random.randrange(-1500, -100), random.choice(["red","blue","green"]))
+                enemy = Enemy(random.randrange(50, WIDTH-100), random.randrange(-1500, -100), random.choice(enemy_ships))
                 enemies.append(enemy)
+
 
 
         for event in pygame.event.get():
