@@ -109,9 +109,13 @@ class Player(Ship):
             else:
                 for obj in objs:
                     if laser.collision(obj):
-                        objs.remove(obj)
-                        if laser in self.lasers:
-                            self.lasers.remove(laser)    
+                        if obj.health:
+                            obj.health -= 10
+                            if laser in self.lasers:
+                                    self.lasers.remove(laser)
+                            if obj.health == 0:
+                                objs.remove(obj)
+                                
 
     def draw(self, window):
         super().draw(window)
@@ -128,10 +132,23 @@ class Enemy(Ship):
         "green": (GREEN_SPACE_SHIP, GREEN_LASER)
     }
 
-    def __init__(self, x, y, color, health=100):
+    def __init__(self, x, y, color, health=10):
+        self.max_health = 10
+        self.color = color
         super().__init__(x, y, health)
         self.ship_img, self.laser_img = self.COLOR_MAP[color]
         self.mask = pygame.mask.from_surface(self.ship_img)
+
+    def draw(self, window):
+        super().draw(window)  
+        if self.color == "red":
+            self.health = 20
+            self.max_health = 20
+            self.healthbar(window)
+        
+    def healthbar(self, window):
+        pygame.draw.rect(window, (255,0,0), (self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width(), 10))
+        pygame.draw.rect(window, (0,255,0), (self.x, self.y + self.ship_img.get_height() + 10, self.ship_img.get_width() * (self.health/self.max_health), 10))            
 
     def move(self, vel):
         self.y += vel
@@ -158,6 +175,10 @@ def main():
     enemies = []
     wave_length = 0
     enemy_vel = 1
+    # for enemy in enemies:
+    #     if enemy == Enemy("green"):
+    #         enemy_vel = 5
+
 
     player_vel = 5
     laser_vel = 5
@@ -168,7 +189,7 @@ def main():
     lost = False
     lost_count = 0
 
-    color_list = ["blue", "green", "red"]
+    color_list = ["green", "blue", "red"]
     enemy_ships = []
 
     def redraw_window():
@@ -195,6 +216,7 @@ def main():
         clock.tick(FPS)
         redraw_window()
 
+
         if lives <= 0 or player.health <= 0:
             lost = True
             lost_count += 1
@@ -219,8 +241,6 @@ def main():
                 enemy = Enemy(random.randrange(50, WIDTH-100), random.randrange(-1500, -100), random.choice(enemy_ships))
                 enemies.append(enemy)
 
-
-
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 quit()
@@ -240,7 +260,6 @@ def main():
         for enemy in enemies:
             enemy.move(enemy_vel)
             enemy.move_lasers(laser_vel, player)
-
             if random.randrange(0, 2*60) == 1:
                 enemy.shoot()
             
